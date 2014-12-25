@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Administrative interface to the Video module.
+ * @author : Heshan (heshan@heidisoft.com)
+ */
+
+/**
+ * Saves a new preset.
+ */
+function video_preset_save($preset) {
+  // If they provide the pid, then this needs to be an update.
+  $pid = (isset($preset['pid']) && $preset['pid']) ? array('pid') : array();
+  $object = (object)$preset;
+
+  // Save or update a preset.
+  drupal_write_record('video_preset', $object, $pid);
+
+  $preset['pid'] = $object->pid;
+
+  return $preset;
+}

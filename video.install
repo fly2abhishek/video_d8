@@ -1,7 +1,7 @@
 <?php
 
+use Drupal\video\Transcoder;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-
 /**
  * @file
  * Provides installation schema for video.module
@@ -258,18 +258,18 @@ function video_requirements($phase) {
   $requirements = array();
 
   if ($phase == 'runtime') {
-    $transcoder = new Transcoder();
+    // $includes\transcoder = new Transcoder();
     $errormsg = '';
 
-    if (!$transcoder->hasTranscoder()) {
+    if (!Transcoder::hasTranscoder()) {
       $name = t('None');
       $version = t('None');
       $available = TRUE;
     }
     else {
-      $name = $transcoder->getTranscoder()->getName();
-      $version = $transcoder->getTranscoder()->getVersion();
-      $available = $transcoder->getTranscoder()->isAvailable($errormsg);
+      $name = Transcoder::getTranscoder()->getName();
+      $version = Transcoder::getTranscoder()->getVersion();
+      $available = Transcoder::getTranscoder()->isAvailable($errormsg);
     }
 
     $requirements['video'] = array(
