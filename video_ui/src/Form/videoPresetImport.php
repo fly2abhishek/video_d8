@@ -42,42 +42,37 @@ class videoPresetImport extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    dsm($form_state);
-    // $preset = $form_state['preset'];
-    // video_preset_save($preset);
-    // drupal_set_message(t('The preset %preset_name has been imported.', array('%preset_name' => $preset['name'])));
-    // $form_state['redirect'] = 'admin/config/media/video/presets';
 
-    // $userInputValues = $form_state->getUserInput();
-    // $config = \Drupal::config('video.settings');
-
-    // dsm($userInputValues['video_convertor']);
-    // $config->set('video_convertor', $userInputValues['video_convertor']);
-    // $config->save();
-    // parent::submitForm($form, $form_state);
+    $userInputValues = $form_state->getUserInput();
+    $preset = $userInputValues['preset'];
+    video_preset_save($preset);
+    
+    drupal_set_message(t('The preset %preset_name has been imported.', array('%preset_name' => $preset['name'])));
+    $form_state->setRedirect('video_ui.preset_setting');
   }
 
-  public function validateForm(array &$form, FormStateInterface $form_state) {
+    public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    $preset = '';
+      $userInputValues = $form_state->getUserInput();
+      $preset = '';
 
-    // Get the preset that they declared in the text field.
-    ob_start();
-    eval($form_state['values']['preset']);
-    ob_end_clean();
+      // Get the preset that they declared in the text field.
+      ob_start();
+      eval($userInputValues['preset']);
+      ob_end_clean();
 
-    if (is_array($preset)) {
-      $name = isset($preset['name']) ? $preset['name'] : '';
-      if ($error = video_validate_preset_name($name)) {
-        form_set_error('name', $error);
+      if (is_array($preset)) {
+        $name = isset($preset['name']) ? $preset['name'] : '';
+        if ($error = video_validate_preset_name($name)) {
+          $form_state->setErrorByName('name', $error);
+        }
       }
-    }
-    else {
-      form_set_error('name', 'Invalid preset import.');
-    }
+      else {
+        $form_state->setErrorByName('name', 'Invalid preset import.');
+      }
 
-    $form_state['preset'] = &$preset;
-  }
+      $userInputValues['preset'] = &$preset;
+    }
 }
 
 /**

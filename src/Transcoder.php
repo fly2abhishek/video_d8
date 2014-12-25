@@ -311,6 +311,7 @@ class Transcoder {
    *   TranscoderFactoryInterface
    */
   public static function createTranscoder($transcoder) {
+    error_log($transcoder);
     if ($transcoder == '') {
       return NULL;
     }
