@@ -36,6 +36,85 @@ class VideoWidget extends FileWidget {
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $element = parent::settingsForm($form, $form_state);
+    //  $transcoder = new Transcoder();  -- TO DO...
+    // $hastranscoder = $transcoder->hasTranscoder();
+    // Add warnings for streaming to iPad when using the private file system
+    // See http://www.metaltoad.com/blog/iphone-video-streaming-drupals-file-system
+    $ioswarning = '<br/>' . t('Streaming to Apple iOS devices (iPad/iPhone/iPod) is not supported when using the private file system unless a module to support Range requests is installed. Modules that are known to work are <a href="@xsendfile-module">X-Sendfile</a> or <a href="@resumable-download-module">Resumable Download</a>.', array(
+        '@xsendfile-module' => url('http://drupal.org/project/xsendfile'),
+        '@resumable-download-module' => url('http://drupal.org/project/resumable_download')
+      ));
+
+    $element['uri_scheme']['#description'] .= $ioswarning;
+    $element['uri_scheme_converted']['#description'] .= $ioswarning;
+    $element['autoconversion'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable auto video conversion'),
+      '#description' => t('Convert videos automatically using FFmpeg or Zencoder. You can define presets at !preset to automatically convert videos to web compatible formats eg. FLV, MP4. Make sure to configure your !settings to make this work properly.', array(
+        '!settings' => l(t('transcoder settings'), 'admin/config/media/video/transcoders'),
+        '!preset' => l(t('preset settings'), 'admin/config/media/video/presets'),
+      )),
+      '#default_value' => $this->getSetting('autoconversion'),
+    );
+
+    $element['thumbnail_format'] = array(
+      '#title' => t('Thumbnail format'),
+      '#type' => 'radios',
+      '#options' => array('jpg' => 'JPEG', 'png' => 'PNG'),
+      '#default_value' =>  ($this->getSetting('thumbnail_format')) ? $this->getSetting('thumbnail_format') : 'jpg',
+    );
+
+    $thumb_options = array(
+      'auto' => 'Automatically extract thumbnails from video (with fallback to manual upload)',
+      'manual_upload' => 'Manually upload a thumbnail',
+      'no' => 'Don\'t create thumbnail',
+    );
+
+      unset($thumb_options['auto']);
+      if ( !$this->getSetting('autothumbnail') || $this->getSetting('autothumbnail') == 'auto') {
+        $this->setSetting('autothumbnail','no');
+      }
+
+    $element['autothumbnail'] = array(
+      '#type' => 'radios',
+      '#title' => t('Video thumbnails'),
+      '#options' => $thumb_options,
+      '#description' => t('If you choose <i>Automatically extract thumbnails from video</i> then please make sure to configure your !settings to make this work properly.', array('!settings' => l(t('transcoder settings'), 'admin/config/media/video/transcoders'))),
+      '#default_value' => !$this->getSetting('autothumbnail') ? $this->getSetting('autothumbnail') : 'auto',
+    );
+    $element['default_video_thumbnail'] = array(
+      '#title' => t('Default video thumbnail'),
+      '#type' => 'managed_file',
+      '#element_validate' => array('video_field_default_thumbnail_validate'),
+      '#description' => t('You can use a default thumbnail for all videos or videos from which a thumbnail can\'t be extracted. Settings to use default video thumbnails will be available on node edit. You can change the permissions for other users too.'),
+      '#default_value' => !$this->getSetting('default_video_thumbnail')['fid'] ? $this->getSetting('default_video_thumbnail')['fid'] : '',
+      '#upload_location' => 'public://videos/thumbnails/default',
+    );
+    $element['preview_video_thumb_style'] = array(
+      '#title' => t('Preview thumbnail style'),
+      '#type' => 'select',
+      '#options' => image_style_options(FALSE),
+      '#empty_option' => '<' . t('no preview') . '>',
+      '#default_value' => $this->getSetting('preview_video_thumb_style'),
+      '#description' => t('This image style will be used to show extracted video thumbnails on video node edit. Extracted thumbnail preview will also use this style.'),
+    );
+    $selectedpresets = array_filter(variable_get('video_preset', array()));
+    $presets = Preset::getAllPresets();
+    $presetnames = array();
+    foreach ($presets as $preset) {
+      $presetnames[$preset['name']] = $preset['name'];
+      if (in_array($preset['name'], $selectedpresets)) {
+        $presetnames[$preset['name']] .= ' (' . t('default') . ')';
+      }
+    }
+    $element['presets'] = array(
+      '#title' => t('Presets'),
+      '#type' => 'checkboxes',
+      '#options' => $presetnames,
+      '#default_value' => $this->getSetting('presets'),
+      '#description' => t('If any presets are selected, these presets will be used for this field instead of the default presets.'),
+      '#access' => $hastranscoder,
+    );
     /*    $element['preview_image_style'] = array(
           '#title' => t('Preview image style'),
           '#type' => 'select',

@@ -1,20 +1,21 @@
 {#
 /**
  * @file
- * Default theme implementation to display a formatted image field.
+ * Default theme implementation to display a formatted video field.
  *
  * Available variables:
- * - image: A collection of image data.
+ * - video: A collection of video data.
  * - image_style: An optional image style.
  * - path: An optional array containing the link 'path' and link 'options'.
  * - url: An optional URL the image can be linked to.
  *
- * @see template_preprocess_image_formatter()
+ * @see template_preprocess_video_formatter()
  *
  * @ingroup themeable
  */
 #}
 
+{{ dump(url) }}
 <video width="600" height="400" src="{{ url }}" controls>
 
 </video>
