@@ -10,4 +10,3 @@ video_cron: TRUE
 video_transcode_timeout: 10
 video_queue_timeout: 60
 video_ffmpeg_instances: 6
-video_convertor: ''

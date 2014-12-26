@@ -15,7 +15,7 @@ class Transcoder {
   private $transcoder;
 
   public function __construct() {
-    $transcoder = \Drupal::config('video.settings')->get('video_convertor') ?: new TranscoderAbstractionFactoryFfmpeg;
+    $transcoder = \Drupal::config('video_ui.settings')->get('video_convertor') ?: new TranscoderAbstractionFactoryFfmpeg();
     $this->transcoder = self::createTranscoder($transcoder);
   }
 
@@ -30,7 +30,6 @@ class Transcoder {
    *   TranscoderFactoryInterface
    */
   public function getTranscoder() {
-    error_log('message');
     return $this->transcoder;
   }
 
@@ -311,15 +310,9 @@ class Transcoder {
    *   TranscoderFactoryInterface
    */
   public static function createTranscoder($transcoder) {
-    error_log($transcoder);
-    if ($transcoder == '') {
+    if ($transcoder == '') { 
       return NULL;
     }
-
-    if (!class_exists($transcoder, TRUE)) {
-      drupal_set_message(t('The transcoder %transcoder is not configured properly.', array('%transcoder' => $transcoder)), 'error');
-    }
-    error_log($transcoder);
     return $transcoder;
   }
 }

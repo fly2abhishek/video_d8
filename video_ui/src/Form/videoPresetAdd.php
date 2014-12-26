@@ -9,11 +9,13 @@ namespace Drupal\video_ui\Form;
 
 use Drupal\video\Transcoder;
 use Drupal\video\Videoutility;
-use Drupal\Core\Routing\LinkGeneratorInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\video\TranscoderAbstractionFactoryFfmpeg;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use \Drupal\file\Entity\File;
 
+define('VIDEO_PRESET_MAX_LENGTH', 64);
 class videoPresetAdd extends ConfigFormBase {
   /**
    * {@inheritdoc}
@@ -28,29 +30,31 @@ class videoPresetAdd extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     
     $transcoder = new Transcoder();
-	  $transcoder = $transcoder::getTranscoder();
-	  $codecs = $transcoder::getCodecs();
-	  error_log($codecs);
-	  $formats = $transcoder::getAvailableFormats('muxing');
-	  $pixelformats = $transcoder::getPixelFormats();
+
+    
+	  $transcoder = $transcoder->getTranscoder();
+	  $codecs = $transcoder->getCodecs();
+
+	  $formats = $transcoder->getAvailableFormats('muxing');
+	  $pixelformats = $transcoder->getPixelFormats();
 	  $settings = $preset['settings'];
 
 	  if (empty($formats)) {
-	    drupal_set_message(t('No video output extensions are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => url('admin/config/media/video/transcoders'))), 'warning');
+	    drupal_set_message(t('No video output extensions are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => Url::fromRoute('video_ui.transcoder_setting'))), 'warning');
 	  }
 	  elseif (isset($settings['video_extension']) && !isset($formats[$settings['video_extension']])) {
 	    drupal_set_message(t('The currently selected @setting_name %setting_value is no longer available, possibly because you changed the transcoder type or the transcoder itself was updated. Please select a new @setting_name.', array('@setting_name' => t('Video output extension'), '%setting_value' => $settings['video_extension'])), 'warning');
 	    unset($settings['video_extension']);
 	  }
 	  if (empty($codecs['encode']['video'])) {
-	    drupal_set_message(t('No video codecs are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => url('admin/config/media/video/transcoders'))), 'warning');
+	    drupal_set_message(t('No video codecs are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => Url::fromRoute('video_ui.transcoder_setting'))), 'warning');
 	  }
 	  elseif (isset($settings['video_codec']) && !isset($codecs['encode']['video'][$settings['video_codec']])) {
 	    drupal_set_message(t('The currently selected @setting_name %setting_value is no longer available, possibly because you changed the transcoder type or the transcoder itself was updated. Please select a new @setting_name.', array('@setting_name' => t('Video codec'), '%setting_value' => $settings['video_codec'])), 'warning');
 	    unset($settings['video_codec']);
 	  }
 	  if (empty($codecs['encode']['audio'])) {
-	    drupal_set_message(t('No audio codecs are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => url('admin/config/media/video/transcoders'))), 'warning');
+	    drupal_set_message(t('No audio codecs are available. Please reconfigure your <a href="@transcoder-url">video transcoder</a>.', array('@transcoder-url' => Url::fromRoute('video_ui.transcoder_setting'))), 'warning');
 	  }
 	  elseif (isset($settings['audio_codec']) && !isset($codecs['encode']['audio'][$settings['audio_codec']])) {
 	    drupal_set_message(t('The currently selected @setting_name %setting_value is no longer available, possibly because you changed the transcoder type or the transcoder itself was updated. Please select a new @setting_name.', array('@setting_name' => t('Audio codec'), '%setting_value' => $settings['audio_codec'])), 'warning');
@@ -62,7 +66,8 @@ class videoPresetAdd extends ConfigFormBase {
 	  $defaultaudiocodec = isset($codecs['encode']['audio']['']) ? '' : NULL;
 
 	  $form = array();
-	  $form_state['preset'] = $preset;
+		$complete_form = $form_state->getCompleteForm();
+	  $complete_form['preset'] = $preset;
 
 	  // basic preset details
 	  $form['preset'] = array(
@@ -115,7 +120,7 @@ class videoPresetAdd extends ConfigFormBase {
 	    '#description' => t('Extension of the output video.'),
 	    '#options' => $formats,
 	    '#default_value' => !empty($settings['video_extension']) ? $settings['video_extension'] : NULL,
-	    '#required' => TRUE,
+	    // '#required' => TRUE,
 	  );
 
 	  $form['settings']['video']['video_codec'] = array(
@@ -123,14 +128,14 @@ class videoPresetAdd extends ConfigFormBase {
 	    '#title' => t('Video codec'),
 	    '#description' => t('The video codec used in the video file can affect the ability to play the video on certain devices.'),
 	    '#options' => $codecs['encode']['video'],
-	    '#required' => TRUE,
+	    // '#required' => TRUE,
 	    '#default_value' => !empty($settings['video_codec']) ? $settings['video_codec'] : $defaultvideocodec,
 	  );
 
 	  $form['settings']['video']['video_preset'] = array(
 	    '#type' => 'select',
 	    '#title' => t('FFmpeg video preset'),
-	    '#description' => t('A preset file contains a sequence of option=value pairs, one for each line, specifying a sequence of options which would be awkward to specify on the command line. Lines starting with the hash (\'#\') character are ignored and are used to provide comments. Check the &quot;presets&quot; directory in the FFmpeg source tree for examples. See the !doc. Newer FFmpeg installations do not supply libx264 presets anymore, so &quot;!optionnamenone&quot; should be selected. If FFmpeg fails with an error related to presets, please also select &quot;!optionnamenone&quot;. In other cases, an error message may suggest that you should select one of the available options. This setting requires some experimentation.', array('!doc' => LinkGeneratorInterface::generate(t('FFmpeg documentation'), url('http://ffmpeg.org/ffmpeg.html#Preset-files')), '!optionnamenone' => t('None'))),
+	    '#description' => t('A preset file contains a sequence of option=value pairs, one for each line, specifying a sequence of options which would be awkward to specify on the command line. Lines starting with the hash (\'#\') character are ignored and are used to provide comments. Check the &quot;presets&quot; directory in the FFmpeg source tree for examples. See the !doc. Newer FFmpeg installations do not supply libx264 presets anymore, so &quot;!optionnamenone&quot; should be selected. If FFmpeg fails with an error related to presets, please also select &quot;!optionnamenone&quot;. In other cases, an error message may suggest that you should select one of the available options. This setting requires some experimentation.', array('!doc' => \Drupal::l(t('FFmpeg documentation'), Url::fromUri('http://ffmpeg.org/ffmpeg.html#Preset-files')), '!optionnamenone' => t('None'))),
 	    '#options' => array(
 	      '' => t('None'),
 	      'libx264-baseline' => 'libx264-baseline',
@@ -195,7 +200,7 @@ class videoPresetAdd extends ConfigFormBase {
 	  $form['settings']['video']['wxh'] = array(
 	    '#type' => 'select',
 	    '#title' => t('Dimensions'),
-	    '#description' => t('Select the desired widthxheight of the video player. You can add your own dimensions from !settings.', array('!settings' => LinkGeneratorInterface::generate(t('Video module settings'), 'admin/config/media/video'))),
+	    '#description' => t('Select the desired widthxheight of the video player. You can add your own dimensions from !settings.', array('!settings' => \Drupal::l(t('Video module settings'), Url::fromRoute('video_ui.general_configuration')))),
 	    '#default_value' => !empty($settings['wxh']) ? $settings['wxh'] : '640x360',
 	    '#options' => Videoutility::getDimensions(),
 	  );
@@ -231,7 +236,7 @@ class videoPresetAdd extends ConfigFormBase {
 	    '#title' => t('Audio codec'),
 	    '#description' => t('The audio codec to be used.'),
 	    '#options' => $codecs['encode']['audio'],
-	    '#required' => TRUE,
+	    // '#required' => TRUE,
 	    '#default_value' => (!empty($settings['audio_codec'])) ? $settings['audio_codec'] : $defaultaudiocodec,
 	  );
 	  $form['settings']['audio']['audio_quality'] = array(
@@ -586,17 +591,51 @@ class videoPresetAdd extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-  // //   $userInputValues = $form_state->getUserInput();
-  // //   $node_types = NodeType::loadMultiple();
+    $userInputValues = $form_state->getUserInput();
+  
+    $v =& $userInputValues;
+    $complete_form = $form_state->getCompleteForm();
 
-  // //   $config = $this->config('social_stats.settings');
+	  $old = isset($complete_form['preset']) ? $complete_form['preset'] : NULL;
 
-  // //   // Add new index to the config variable per content type.
-  // //   foreach ($node_types as $type) {
-  // //     $config->set('social_stats_content_types_' . $type->type, serialize($userInputValues['social_stats_' . $type->type]));
-  // //   }
+	  $preset = array();
+	  if ($old && isset($old['pid'])) {
+	    $preset['pid'] = $old['pid'];
+	  }
 
-  // //   $config->save();
-  // //   parent::submitForm($form, $form_state);
+	  // There is only a name if this isn't a module provided preset
+	  $preset['name'] = isset($v['name']) ? $v['name'] : $old['name'];
+	  $preset['description'] = $v['description'];
+	  // unset unwanted values saved to database
+	  unset($v['name'], $v['description'], $v['submit'], $v['delete'], $v['form_build_id'], $v['form_token'], $v['form_id'], $v['op'], $v['revert']);
+	  $preset['settings'] = video_preset_array_flatten($v);
+
+	  // Save this preset.
+	  $preset = video_preset_save($preset);
+
+	  // Save new watermark image if exists
+	  if (!empty($v['video_watermark_fid'])) {
+	    $file = File::load($v['video_watermark_fid']);
+	    if ($file->status != FILE_STATUS_PERMANENT) {
+	      $file->status = FILE_STATUS_PERMANENT;
+	      // file_save($file);
+	      file_usage()->add($file, 'video', 'preset', $preset['pid']);
+	      // file_usage_add($file, 'video', 'preset', $preset['pid']);
+	    }
+	  }
+
+	  // Remove the old watermark if different
+	  if ($old && !empty($old['settings']['video_watermark_fid']) && $old['settings']['video_watermark_fid'] != $form_state['values']['video_watermark_fid']) {
+	    $oldfile = File::load($old['settings']['video_watermark_fid']);
+	    if (!empty($oldfile)) {
+	    	$oldfile->status = 0;
+	    	file_usage()->delete($oldfile, 'video', 'preset', $preset['pid']);
+	      // file_usage_delete($oldfile, 'video');
+	      // file_save($oldfile);
+	    }
+	  }
+
+	  drupal_set_message(t('Preset %preset successfully saved.', array('%preset' => $preset['name'])));
+	  $form_state->setRedirect('video_ui.preset_setting');
   }
 }

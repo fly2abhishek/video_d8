@@ -376,14 +376,14 @@ class TranscoderAbstractionFactoryFfmpeg extends TranscoderAbstractionFactory im
   public function getFileInfo() {
     $file = $this->settings['input']['uri'];
     $cid = 'video:file:' . md5($file);
-    $cache = \Drupal::cache('data')->get($cid);
+    $cache = \Drupal::cache()->get($cid);
     // $cache = cache_get($cid);
     if (!empty($cache->data)) {
       return $cache->data;
     }
 
     $data = $this->transcoder->getFileInfo();
-    \Drupal::cache('data')->set(self::INFO_CID, $data, self::INFO_CACHE, time() + 7 * 24 * 3600);
+    \Drupal::cache()->set($cid, $data);
     // cache_set($cid, $data, self::INFO_CACHE, time() + 7 * 24 * 3600);
     return $data;
   }
@@ -590,14 +590,14 @@ class TranscoderAbstractionFactoryFfmpeg extends TranscoderAbstractionFactory im
    *   array of FFmpeg installation information.
    */
   private function getCachedFFmpegInfo() {
-    $cache = \Drupal::cache('data')->get(self::INFO_CID);
+    $cache = \Drupal::cache()->get(self::INFO_CID);
     // $cache = cache_get(self::INFO_CID, self::INFO_CACHE);
     if (!empty($cache->data)) {
       return $cache->data;
     }
 
     $info = $this->transcoder->getFFmpegInfo(FALSE);
-    \Drupal::cache('data')->set(self::INFO_CID, $info, self::INFO_CACHE);
+    \Drupal::cache()->set(self::INFO_CID, $info);
     // cache_set(self::INFO_CID, $info, self::INFO_CACHE);
     return $info;
   }
