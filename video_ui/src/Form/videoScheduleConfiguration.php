@@ -24,7 +24,7 @@ class videoScheduleConfiguration extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
 
     $form = array();
 	  $form['video_cron'] = array(
@@ -73,7 +73,7 @@ class videoScheduleConfiguration extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
     $userInputValues = $form_state->getUserInput();
 
     $config->set('video_cron', $userInputValues['video_cron']);

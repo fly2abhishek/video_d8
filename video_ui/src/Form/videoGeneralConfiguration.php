@@ -25,9 +25,9 @@ class videoGeneralConfiguration extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
     $hastranscoder = $config->get('video_convertor') !== '';
-
+    
     $form = array();
     $form['video_autoplay'] = array(
       '#type' => 'checkbox',
@@ -86,7 +86,7 @@ class videoGeneralConfiguration extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
     $userInputValues = $form_state->getUserInput();
 
     $config->set('video_autoplay', $userInputValues['video_autoplay']);

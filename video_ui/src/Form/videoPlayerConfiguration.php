@@ -40,14 +40,14 @@ class videoPlayerConfiguration extends ConfigFormBase {
       $form['extensions']['video_extension_' . $ext] = array(
         '#type' => 'select',
         '#title' => t('Extension:') . '  ' . $ext,
-        '#default_value' => \Drupal::config('video.settings')->get('video_extension_' . $ext) ?: $player,
+        '#default_value' => \Drupal::config('video_ui.settings')->get('video_extension_' . $ext) ?: $player,
         '#options' => $players,
         '#required' => TRUE,
       );
 
       // For Flash
       if (!empty($flv_players)) {
-        $value = \Drupal::config('video.settings')->get('video_extension_' . $ext . '_flash_player') ?: '';
+        $value = \Drupal::config('video_ui.settings')->get('video_extension_' . $ext . '_flash_player') ?: '';
         if (empty($value) || !isset($flv_players[$value])) {
           $value = key($flv_players);
         }
@@ -78,7 +78,7 @@ class videoPlayerConfiguration extends ConfigFormBase {
 
       // for HTML5
       if (!empty($html5_players)) {
-        $value = \Drupal::config('video.settings')->get('video_extension_' . $ext . '_html5_player') ?: '';
+        $value = \Drupal::config('video_ui.settings')->get('video_extension_' . $ext . '_html5_player') ?: '';
         if (empty($value) || !isset($html5_players[$value])) {
           $value = key($html5_players);
         }
@@ -116,7 +116,7 @@ class videoPlayerConfiguration extends ConfigFormBase {
         '#type' => 'select',
         '#title' => t('JW Player preset'),
         '#options' => $presets,
-        '#default_value' => \Drupal::config('video.settings')->get('video_jwplayer_preset') ?: NULL,
+        '#default_value' => \Drupal::config('video_ui.settings')->get('video_jwplayer_preset') ?: NULL,
         '#empty_value' => '',
       );
     }

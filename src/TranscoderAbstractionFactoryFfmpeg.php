@@ -5,6 +5,7 @@ namespace Drupal\video;
 use Drupal\video\Videoutility;
 use Drupal\video\PHPVideoToolkit;
 use Drupal\video\TranscoderAbstractionFactory;
+use Drupal\views_ui\ViewUI;
 
 /**;
 /**
@@ -132,7 +133,7 @@ class TranscoderAbstractionFactoryFfmpeg extends TranscoderAbstractionFactory im
           $this->outputextension = $value;
           break;
         case 'video_quality':
-          $result = $this->transcoder->setConstantQuality($value * 20); // phpVideoToolkit expects 1 to 100 range.
+          $result = $this->transcoder->setConstantQuality($value * 20); // PHPVideoToolkit expects 1 to 100 range.
           break;
         case 'clip_start':
           if (preg_match('#^(\d+)$#', $value)) {
@@ -375,13 +376,15 @@ class TranscoderAbstractionFactoryFfmpeg extends TranscoderAbstractionFactory im
   public function getFileInfo() {
     $file = $this->settings['input']['uri'];
     $cid = 'video:file:' . md5($file);
-    $cache = cache_get($cid);
+    $cache = \Drupal::cache('data')->get($cid);
+    // $cache = cache_get($cid);
     if (!empty($cache->data)) {
       return $cache->data;
     }
 
     $data = $this->transcoder->getFileInfo();
-    cache_set($cid, $data, self::INFO_CACHE, time() + 7 * 24 * 3600);
+    \Drupal::cache('data')->set(self::INFO_CID, $data, self::INFO_CACHE, time() + 7 * 24 * 3600);
+    // cache_set($cid, $data, self::INFO_CACHE, time() + 7 * 24 * 3600);
     return $data;
   }
 
@@ -587,13 +590,15 @@ class TranscoderAbstractionFactoryFfmpeg extends TranscoderAbstractionFactory im
    *   array of FFmpeg installation information.
    */
   private function getCachedFFmpegInfo() {
-    $cache = cache_get(self::INFO_CID, self::INFO_CACHE);
+    $cache = \Drupal::cache('data')->get(self::INFO_CID);
+    // $cache = cache_get(self::INFO_CID, self::INFO_CACHE);
     if (!empty($cache->data)) {
       return $cache->data;
     }
 
     $info = $this->transcoder->getFFmpegInfo(FALSE);
-    cache_set(self::INFO_CID, $info, self::INFO_CACHE);
+    \Drupal::cache('data')->set(self::INFO_CID, $info, self::INFO_CACHE);
+    // cache_set(self::INFO_CID, $info, self::INFO_CACHE);
     return $info;
   }
 

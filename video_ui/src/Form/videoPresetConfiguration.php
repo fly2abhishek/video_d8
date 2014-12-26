@@ -30,12 +30,12 @@ class videoPresetConfiguration extends ConfigFormBase {
     $form['video_use_preset_wxh'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use preset dimensions for video conversion.'),
-      '#default_value' => \Drupal::config('video.settings')->get('video_use_preset_wxh') ?: FALSE,
+      '#default_value' => \Drupal::config('video_ui.settings')->get('video_use_preset_wxh') ?: FALSE,
       '#description' => t('Override the user selected dimensions with the value from the presets (recommended).')
     );
 
     if (!empty($presets)) {
-      $selected = array_filter(\Drupal::config('video.settings')->get('video_preset') ?: array());
+      $selected = array_filter(\Drupal::config('video_ui.settings')->get('video_preset') ?: array());
 
       $form['video_preset'] = array(
         '#tree' => TRUE,

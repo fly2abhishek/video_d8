@@ -30,6 +30,7 @@ class videoPresetAdd extends ConfigFormBase {
     $transcoder = new Transcoder();
 	  $transcoder = $transcoder::getTranscoder();
 	  $codecs = $transcoder::getCodecs();
+	  error_log($codecs);
 	  $formats = $transcoder::getAvailableFormats('muxing');
 	  $pixelformats = $transcoder::getPixelFormats();
 	  $settings = $preset['settings'];

@@ -24,7 +24,7 @@ class ffmpegDebugging extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
 
     $ffmpegpath = $config->get('video_ffmpeg_path') ?: '/usr/bin/ffmpeg';
 	  if (isset($_GET['ffmpegpath'])) {
@@ -41,7 +41,6 @@ class ffmpegDebugging extends ConfigFormBase {
 
 	  if ($ffmpegpath != '') {
 	    $transcoder = new PHPVideoToolkit($ffmpegpath, realpath(file_directory_temp()) . '/');
-	    dsm($transcoder);
 	    $info = $transcoder->getFFmpegInfo(FALSE);
 	    $infotxt = var_export($info, TRUE);
 
@@ -61,9 +60,10 @@ class ffmpegDebugging extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
-    $config = \Drupal::config('video.settings');
+    $config = \Drupal::config('video_ui.settings');
     $userInputValues = $form_state->getUserInput();
     
+    $config->set('video_ffmpeg_path', $userInputValues['ffmpegpath']);
     $config->save();
     parent::submitForm($form, $form_state);
   }
